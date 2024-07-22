@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.26;
 
 
 //CA - 0x2F3b05feF6265F8574CbC9900A8c581c993fEae6
@@ -11,6 +11,11 @@ contract SimpleWallet {
    
     address public owner;
     string public str;
+
+    event Transfer( address receiver, uint amount);
+    event Receive(address sender, uint amount);
+    event ReceiveUser(address sender, address receiver, uint amount);
+
 
 
     constructor(){
@@ -34,6 +39,7 @@ contract SimpleWallet {
     function transferToUserViaContract(address payable _to, uint _weiAmount) external onlyOwner {
         require(address(this).balance>=_weiAmount,"Insufficient Balance");
         _to.transfer(_weiAmount);
+        emit Transfer(_to, _weiAmount );
     }
 
 
@@ -64,6 +70,7 @@ contract SimpleWallet {
     function receiveFromUser() external payable{
         require(msg.value>0, "wei value must be greater than zero");
         payable(owner).transfer(msg.value);
+        emit ReceiveUser(msg.sender, owner, msg.value);
          } 
        
     
@@ -82,6 +89,7 @@ contract SimpleWallet {
 
     receive() external payable {
         str="receive function is called";
+        emit Receive(msg.sender, msg.value);
 
 
        
@@ -90,7 +98,8 @@ contract SimpleWallet {
 
 
 
-    fallback() external  {
+    fallback() external  payable {
+        payable (msg.sender).transfer(msg.value); //returning ether to the user back
 
         str="fallback function is called";
        
